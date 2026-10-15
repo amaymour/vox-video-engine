@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- explorer: standing, holding a pennant pole -->
+  <g fill="#000000">
+    <circle cx="88" cy="58" r="35"/>
+    <rect x="78" y="88" width="20" height="20"/>
+    <path d="M40 138 Q88 110 136 138 L146 262 Q88 282 30 262 Z"/>
+    <path d="M26 146 q-14 62 -8 122 l18 2 q-8 -58 6 -112 Z"/>
+    <path d="M46 262 h20 v138 h-20 Z"/>
+    <path d="M110 262 h20 v138 h-20 Z"/>
+    <!-- raised arm gripping the pole -->
+    <path d="M130 142 q34 -18 48 -52 l14 6 q-14 42 -50 62 Z"/>
+    <!-- pole + pennant -->
+    <rect x="176" y="30" width="9" height="316" rx="4"/>
+    <path d="M176 40 L118 58 L176 78 Z"/>
+  </g>
+</svg>

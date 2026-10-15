@@ -1,0 +1,32 @@
+{
+  "name": "vox-video-engine",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Zero-cost, cloud-rendered Vox-style motion-graphics video engine (Remotion + GitHub Actions + edge-tts + OmniRoute/OpenCode).",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "remotion preview",
+    "build": "remotion render src/index.ts VoxVideo out/video.mp4",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/media-utils": "4.0.535",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "4.0.535"
+  },
+  "devDependencies": {
+    "@remotion/cli": "4.0.535",
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "allowScripts": {
+    "esbuild": true
+  }
+}

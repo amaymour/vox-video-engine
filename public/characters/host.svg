@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- host: standing, relaxed arms -->
+  <g fill="#000000">
+    <circle cx="100" cy="54" r="36"/>
+    <rect x="90" y="84" width="20" height="20"/>
+    <path d="M52 134 Q100 106 148 134 L158 258 Q100 278 42 258 Z"/>
+    <path d="M38 142 q-14 62 -8 124 l18 2 q-8 -60 6 -114 Z"/>
+    <path d="M162 142 q14 62 8 124 l-18 2 q8 -60 -6 -114 Z"/>
+    <path d="M58 258 h20 v142 h-20 Z"/>
+    <path d="M122 258 h20 v142 h-20 Z"/>
+  </g>
+</svg>

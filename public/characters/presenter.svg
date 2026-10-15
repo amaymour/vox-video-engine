@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <!-- presenter: standing, right arm raised pointing -->
+  <g fill="#000000">
+    <circle cx="96" cy="56" r="36"/>
+    <rect x="86" y="86" width="20" height="20"/>
+    <path d="M48 136 Q96 108 144 136 L154 260 Q96 280 38 260 Z"/>
+    <path d="M34 144 q-14 62 -8 122 l18 2 q-8 -58 6 -112 Z"/>
+    <!-- raised pointing arm -->
+    <path d="M142 140 q40 -22 56 -62 l14 6 q-16 48 -58 74 Z"/>
+    <circle cx="198" cy="72" r="12"/>
+    <path d="M54 260 h20 v140 h-20 Z"/>
+    <path d="M118 260 h20 v140 h-20 Z"/>
+  </g>
+</svg>

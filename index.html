@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vox Engine — Cloud Motion-Graphics Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ink: "#0b1020",
+              panel: "#0f172a",
+              vox: "#e11d2a",
+              indigo2: "#6366f1",
+            },
+            fontFamily: {
+              mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      body {
+        background:
+          radial-gradient(900px 600px at 12% -10%, rgba(99, 102, 241, 0.18), transparent 60%),
+          radial-gradient(900px 600px at 110% 120%, rgba(225, 29, 42, 0.16), transparent 60%),
+          #0b1020;
+      }
+      #console-logs::-webkit-scrollbar { width: 10px; }
+      #console-logs::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 8px; }
+      .glow { box-shadow: 0 0 34px rgba(225, 29, 42, 0.35); }
+      @keyframes pulse-dot { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+      .dot { animation: pulse-dot 1.4s infinite; }
+    </style>
+  </head>
+  <body class="text-slate-200 min-h-screen">
+    <main class="max-w-6xl mx-auto px-6 py-10">
+      <!-- Header -->
+      <header class="flex items-start justify-between gap-6 flex-wrap">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="inline-block w-3 h-3 rounded-full bg-vox dot"></span>
+            <span class="text-xs font-mono tracking-[0.3em] text-vox uppercase">Vox Engine</span>
+          </div>
+          <h1 class="mt-3 text-4xl md:text-5xl font-black tracking-tight">
+            Cloud Motion-Graphics Studio
+          </h1>
+          <p class="mt-3 text-slate-400 max-w-2xl leading-relaxed">
+            Zero-cost, cloud-rendered Vox-style video engine. Enter your credentials,
+            pick a niche, and GitHub Actions renders a layered, halftone-backed
+            explainer with voiceover and sound design.
+          </p>
+        </div>
+        <div class="text-right">
+          <div class="text-[11px] font-mono text-slate-500 uppercase tracking-widest">Renderer</div>
+          <div class="text-sm font-bold text-slate-200">ubuntu-latest · Remotion</div>
+          <div class="text-[11px] font-mono text-slate-500 mt-2">
+            <a id="repo-link" class="hover:text-slate-300 underline" href="#" target="_blank" rel="noreferrer">repository</a>
+          </div>
+        </div>
+      </header>
+
+      <!-- Credentials -->
+      <section class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="bg-panel/70 border border-slate-800 rounded-2xl p-5 backdrop-blur">
+          <label for="gh-token" class="block text-xs font-mono uppercase tracking-widest text-slate-400">
+            GitHub Classic Token
+          </label>
+          <input
+            id="gh-token"
+            type="password"
+            autocomplete="off"
+            placeholder="ghp_…  (repo scope)"
+            class="mt-3 w-full bg-ink border border-slate-700 rounded-xl px-4 py-3 font-mono text-sm
+                   focus:ring-2 focus:ring-indigo2 focus:border-transparent outline-none transition"
+          />
+          <p class="mt-2 text-[11px] text-slate-500">
+            Authenticates the repository dispatch. Used in-memory only — never stored or sent anywhere but GitHub.
+          </p>
+        </div>
+
+        <div class="bg-panel/70 border border-slate-800 rounded-2xl p-5 backdrop-blur">
+          <label for="opencode-target" class="block text-xs font-mono uppercase tracking-widest text-slate-400">
+            OpenCode Connection Terminal
+          </label>
+          <input
+            id="opencode-target"
+            type="text"
+            autocomplete="off"
+            value="http://localhost:20128/v1"
+            class="mt-3 w-full bg-ink border border-slate-700 rounded-xl px-4 py-3 font-mono text-sm
+                   focus:ring-2 focus:ring-indigo2 focus:border-transparent outline-none transition"
+          />
+          <p class="mt-2 text-[11px] text-slate-500">
+            Local OmniRoute / OpenCode endpoint. Passed to the runner as <span class="font-mono">opencode_target</span>;
+            falls back to the deterministic template when unreachable from the cloud.
+          </p>
+        </div>
+      </section>
+
+      <!-- Generation controls -->
+      <section class="mt-5 bg-panel/70 border border-slate-800 rounded-2xl p-5 backdrop-blur">
+        <form id="video-form" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+          <div class="md:col-span-6">
+            <label for="niche" class="block text-xs font-mono uppercase tracking-widest text-slate-400">
+              Niche Selection
+            </label>
+            <select
+              id="niche"
+              class="mt-3 w-full bg-ink border border-slate-700 rounded-xl px-4 py-3 text-sm
+                     focus:ring-2 focus:ring-indigo2 focus:border-transparent outline-none transition"
+            >
+              <option value="Tech Tools">Tech Tools</option>
+              <option value="Keyboard Modding">Keyboard Modding</option>
+              <option value="Finance Automation">Finance Automation</option>
+              <option value="AI Productivity">AI Productivity</option>
+              <option value="Cybersecurity">Cybersecurity</option>
+              <option value="No-Code">No-Code</option>
+              <option value="SaaS Founder">SaaS Founder</option>
+              <option value="Custom...">Custom …</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-6" id="custom-niche-wrap" style="display: none">
+            <label for="custom-niche" class="block text-xs font-mono uppercase tracking-widest text-slate-400">
+              Custom Niche
+            </label>
+            <input
+              id="custom-niche"
+              type="text"
+              placeholder="e.g. Espresso Gear"
+              class="mt-3 w-full bg-ink border border-slate-700 rounded-xl px-4 py-3 text-sm
+                     focus:ring-2 focus:ring-indigo2 focus:border-transparent outline-none transition"
+            />
+          </div>
+
+          <div class="md:col-span-12">
+            <button
+              type="submit"
+              id="init-btn"
+              class="glow w-full md:w-auto bg-vox hover:bg-red-600 active:scale-[0.99]
+                     text-white font-black tracking-wide rounded-xl px-8 py-4 transition
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              🚀 Initialize Cloud Video Engine
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Console + output -->
+      <section class="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="lg:col-span-2 bg-black/60 border border-slate-800 rounded-2xl overflow-hidden">
+          <div class="flex items-center gap-2 px-4 py-2.5 border-b border-slate-800 bg-panel/60">
+            <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+            <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
+            <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
+            <span class="ml-3 text-[11px] font-mono uppercase tracking-widest text-slate-500">
+              engine lifecycle
+            </span>
+          </div>
+          <pre
+            id="console-logs"
+            class="font-mono text-[12.5px] leading-relaxed p-4 h-72 overflow-auto whitespace-pre-wrap"
+          ><span class="text-slate-500">[boot] Vox Engine ready. Configure credentials and initialize.</span></pre>
+        </div>
+
+        <div class="space-y-5">
+          <div class="bg-panel/70 border border-slate-800 rounded-2xl p-5">
+            <div class="text-xs font-mono uppercase tracking-widest text-slate-400">Pipeline</div>
+            <ol id="pipeline" class="mt-3 space-y-2 text-sm">
+              <li data-step="trends" class="flex items-center gap-3 text-slate-500">
+                <span class="step-dot w-2 h-2 rounded-full bg-slate-600"></span> Trend discovery
+              </li>
+              <li data-step="script" class="flex items-center gap-3 text-slate-500">
+                <span class="step-dot w-2 h-2 rounded-full bg-slate-600"></span> Script + voiceover
+              </li>
+              <li data-step="render" class="flex items-center gap-3 text-slate-500">
+                <span class="step-dot w-2 h-2 rounded-full bg-slate-600"></span> Motion-graphics render
+              </li>
+              <li data-step="publish" class="flex items-center gap-3 text-slate-500">
+                <span class="step-dot w-2 h-2 rounded-full bg-slate-600"></span> Publish artifact
+              </li>
+            </ol>
+          </div>
+
+          <div id="download-zone" class="hidden bg-gradient-to-br from-emerald-900/40 to-panel/70 border border-emerald-700/50 rounded-2xl p-5">
+            <div class="text-xs font-mono uppercase tracking-widest text-emerald-400">Render complete</div>
+            <a
+              id="download-link"
+              href="#"
+              target="_blank"
+              rel="noreferrer"
+              class="mt-3 block text-center bg-emerald-500 hover:bg-emerald-400 text-emerald-950
+                     font-black rounded-xl px-5 py-3 transition"
+            >
+              ⬇ Download video.mp4
+            </a>
+            <a
+              id="run-link"
+              href="#"
+              target="_blank"
+              rel="noreferrer"
+              class="mt-3 block text-center text-[12px] font-mono text-emerald-300 hover:text-emerald-200 underline"
+            >
+              view run on GitHub →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <footer class="mt-10 text-[11px] font-mono text-slate-600">
+        Vox Engine · zero-cost cloud render · MIT
+      </footer>
+    </main>
+
+    <script>
+      // ------------------------------------------------------------------ //
+      // Configuration
+      // ------------------------------------------------------------------ //
+      const REPO_OWNER = "amaymour"
+      const REPO_NAME = "vox-video-engine"
+      const DISPATCH_EVENT = "trigger-video-generation"
+
+      const $ = (id) => document.getElementById(id)
+      const consoleEl = $("console-logs")
+      const form = $("video-form")
+      const initBtn = $("init-btn")
+      const nicheSelect = $("niche")
+      const customWrap = $("custom-niche-wrap")
+      const customInput = $("custom-niche")
+      const downloadZone = $("download-zone")
+      const downloadLink = $("download-link")
+      const runLink = $("run-link")
+
+      $("repo-link").href = `https://github.com/${REPO_OWNER}/${REPO_NAME}`
+      $("repo-link").textContent = `${REPO_OWNER}/${REPO_NAME}`
+
+      nicheSelect.addEventListener("change", () => {
+        const custom = nicheSelect.value === "Custom..."
+        customWrap.style.display = custom ? "block" : "none"
+        if (custom) customInput.focus()
+      })
+
+      const stamp = () => new Date().toLocaleTimeString([], { hour12: false })
+      function log(message, kind = "info") {
+        const colors = {
+          info: "text-slate-300",
+          step: "text-indigo-300",
+          ok: "text-emerald-400",
+          warn: "text-amber-400",
+          err: "text-red-400",
+          dim: "text-slate-500",
+        }
+        const line = document.createElement("div")
+        line.className = colors[kind] || colors.info
+        line.textContent = `[${stamp()}] ${message}`
+        consoleEl.appendChild(line)
+        consoleEl.scrollTop = consoleEl.scrollHeight
+      }
+
+      function setStep(name, state) {
+        const li = document.querySelector(`li[data-step="${name}"]`)
+        if (!li) return
+        const dot = li.querySelector(".step-dot")
+        li.className = "flex items-center gap-3 " +
+          ({ active: "text-slate-100", done: "text-emerald-400", fail: "text-red-400" }[state] || "text-slate-500")
+        dot.className = "step-dot w-2 h-2 rounded-full " +
+          ({ active: "bg-indigo-400 dot", done: "bg-emerald-400", fail: "bg-red-400" }[state] || "bg-slate-600")
+      }
+
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+      // ------------------------------------------------------------------ //
+      // GitHub helpers
+      // ------------------------------------------------------------------ //
+      async function gh(token, path) {
+        const res = await fetch(`https://api.github.com${path}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+          },
+        })
+        if (!res.ok) {
+          const body = await res.text().catch(() => "")
+          throw new Error(`GitHub ${res.status} ${res.statusText} ${body.slice(0, 200)}`)
+        }
+        return res.json()
+      }
+
+      async function dispatch(token, niche, opencodeTarget) {
+        const res = await fetch(
+          `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/dispatches`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/vnd.github+json",
+              "X-GitHub-Api-Version": "2022-11-28",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              event_type: DISPATCH_EVENT,
+              client_payload: { niche, opencode_target: opencodeTarget },
+            }),
+          },
+        )
+        if (res.status !== 204) {
+          const body = await res.text().catch(() => "")
+          throw new Error(`dispatch failed: ${res.status} ${res.statusText} ${body.slice(0, 200)}`)
+        }
+      }
+
+      async function findRun(token, sinceMs) {
+        const data = await gh(
+          token,
+          `/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs?event=repository_dispatch&per_page=20`,
+        )
+        const runs = (data.workflow_runs || []).filter(
+          (r) => new Date(r.created_at).getTime() >= sinceMs - 15000,
+        )
+        return runs.sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at),
+        )[0] || null
+      }
+
+      // ------------------------------------------------------------------ //
+      // Main flow
+      // ------------------------------------------------------------------ //
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault()
+        downloadZone.classList.add("hidden")
+        ;["trends", "script", "render", "publish"].forEach((s) => setStep(s, "idle"))
+
+        const token = $("gh-token").value.trim()
+        const opencodeTarget = $("opencode-target").value.trim() || "http://localhost:20128/v1"
+        const niche = nicheSelect.value === "Custom..."
+          ? (customInput.value.trim() || "Tech Tools")
+          : nicheSelect.value
+
+        if (!token) {
+          log("Missing GitHub Classic Token — paste a PAT with 'repo' scope.", "err")
+          return
+        }
+        if (nicheSelect.value === "Custom..." && !customInput.value.trim()) {
+          log("Custom niche selected but empty.", "err")
+          return
+        }
+
+        initBtn.disabled = true
+        log(`Initializing Vox Engine for niche: "${niche}"`, "step")
+        log(`OpenCode target: ${opencodeTarget}`, "dim")
+
+        const since = Date.now()
+        try {
+          setStep("trends", "active")
+          log("Firing repository_dispatch → trigger-video-generation …", "step")
+          await dispatch(token, niche, opencodeTarget)
+          log("Dispatch accepted (204). Waiting for the runner to pick it up …", "ok")
+
+          let run = null
+          for (let i = 0; i < 20 && !run; i++) {
+            await sleep(3000)
+            run = await findRun(token, since)
+          }
+          if (!run) throw new Error("no workflow run appeared (check the PAT 'repo' scope)")
+
+          log(`Run #${run.run_number} started: ${run.html_url}`, "ok")
+          setStep("trends", "done")
+          setStep("script", "active")
+          log("Cloud runner: fetch_trends.py → generate_script.py → edge-tts …", "step")
+
+          let status = run.status
+          let conclusion = run.conclusion
+          let announced = false
+          while (status !== "completed") {
+            await sleep(6000)
+            const fresh = await gh(token, `/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs/${run.id}`)
+            status = fresh.status
+            conclusion = fresh.conclusion
+            log(`run #${run.run_number}: ${status} …`, "dim")
+            if (!announced && status === "in_progress") {
+              setStep("script", "done")
+              setStep("render", "active")
+              log("Rendering multi-layer composition (background → halftone actors → charts) …", "step")
+              announced = true
+            }
+          }
+
+          if (conclusion === "success") {
+            setStep("render", "done")
+            setStep("publish", "active")
+            log("Render succeeded. Publishing artifact + release …", "ok")
+            await sleep(2000)
+            setStep("publish", "done")
+            downloadLink.href = `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/latest/download/video.mp4`
+            runLink.href = run.html_url
+            downloadZone.classList.remove("hidden")
+            downloadZone.scrollIntoView({ behavior: "smooth", block: "center" })
+            log("Done. Click “Download video.mp4”.", "ok")
+          } else {
+            setStep(renderOrFail(conclusion), "fail")
+            log(`Run finished with conclusion: ${conclusion}`, "err")
+            runLink.href = run.html_url
+            downloadZone.classList.remove("hidden")
+            downloadLink.textContent = "Open the failed run"
+            downloadLink.href = run.html_url
+            log(`Inspect: ${run.html_url}`, "warn")
+          }
+        } catch (error) {
+          log(String(error.message || error), "err")
+          setStep("trends", "fail")
+        } finally {
+          initBtn.disabled = false
+        }
+      })
+
+      function renderOrFail(conclusion) {
+        return conclusion === "success" ? "publish" : "render"
+      }
+    </script>
+  </body>
+</html>

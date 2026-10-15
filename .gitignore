@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# build / render output
+out/
+_site/
+dist/
+
+# secrets & logs
+.env
+*.log
+.DS_Store
+
+# generated at runtime by the pipeline (do not commit)
+live_trends.csv
+data/scene.json
+public/voiceover.mp3
+public/sfx/*.wav
+
+# IDE
+.idea/
+.vscode/*
+
+# python
+__pycache__/
+*.pyc
