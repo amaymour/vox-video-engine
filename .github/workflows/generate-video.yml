@@ -1,7 +1,5 @@
 name: Generate Video
 
-# Dashboard dispatches carry the niche + OpenCode target. workflow_dispatch is
-# kept for manual testing from the Actions tab.
 on:
   repository_dispatch:
     types: [trigger-video-generation]
@@ -11,23 +9,13 @@ on:
         description: "Niche keyword (e.g. Tech Tools)"
         required: false
         default: "Tech Tools"
-      opencode_target:
-        description: "OpenCode / OmniRoute endpoint"
-        required: false
-        default: "http://localhost:20128/v1"
 
 permissions:
   contents: write
 
 env:
-  NODE_VERSION: "24"
-  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
   NICHE: ${{ github.event.client_payload.niche || inputs.niche || 'Tech Tools' }}
-  # Local OmniRoute stack by default; unreachable from GitHub-hosted runners, in
-  # which case generate_script.py falls back to a deterministic plan (still free).
-  OPENCODE_TARGET: ${{ github.event.client_payload.opencode_target || inputs.opencode_target || 'http://localhost:20128/v1' }}
-  OPENCODE_MODELS: "auto/coding,oc/deepseek-v4-flash-free"
-  OPENCODE_KEY: "sk_omniroute"
 
 jobs:
   build:
@@ -44,73 +32,35 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip"
+      - name: Install Chromium rendering libraries
+        run: |
+          apt-get update -y
+          apt-get install -y --no-install-recommends \
+            libgbm1 libnss3 libxss1 libasound2t64 libatk1.0-0t64 \
+            libatk-bridge2.0-0t64 libcups2t64 libxkbcommon0 libdrm2 \
+            libxcomposite1 libxdamage1 libxrandr2 libpango-1.0-0 \
+            libcairo2 fonts-liberation fonts-dejavu-core ffmpeg
 
       - name: Install Node dependencies
         run: npm ci
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Synthesize ambient sound effects
-        run: python scripts/make_sfx.py
-
-      - name: Fetch live trends (free, Google News RSS)
-        run: python fetch_trends.py "${{ env.NICHE }}"
-
-      - name: Generate script + Vox scene plan + voiceover
-        run: python scripts/generate_script.py
-
-      - name: Typecheck Remotion sources
-        run: npm run typecheck
 
       - name: Ensure Remotion browser (bundled Chrome Headless Shell)
         run: npx remotion browser ensure
 
       - name: Render KineticPromo composition
         run: |
-          npx remotion render src/index.ts KineticPromo out/video.mp4
+          npx remotion render KineticPromo out/promo.mp4 \
+            --codec=h264 --concurrency=2 --crf=18
 
-      - name: Report output video (Remotion's bundled ffprobe)
-        if: always()
+      - name: Verify output with ffprobe
         run: |
-          if [ -f out/video.mp4 ]; then
-            ls -lh out/video.mp4
-            npx remotion ffprobe -v error \
-              -show_entries format=duration,size,bit_rate \
-              -show_entries stream=codec_type,codec_name,width,height,channels,sample_rate \
-              -of default=noprint_wrappers=1 out/video.mp4
-          else
-            echo "::warning::out/video.mp4 was not produced"
-          fi
+          ffprobe -v error -select_streams v:0 \
+            -show_entries stream=codec_name,width,height,r_frame_rate,nb_frames,duration \
+            -of default=noprint_wrappers=1 out/promo.mp4
 
       - name: Upload video artifact
-        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: video
-          path: out/video.mp4
+          name: promo
+          path: out/promo.mp4
           if-no-files-found: error
-
-      - name: Publish video to a GitHub Release
-        if: success()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="video-$(date -u +%Y%m%d-%H%M%S)"
-          gh release create "$TAG" out/video.mp4 \
-            --title "Vox Engine render — ${{ env.NICHE }}" \
-            --notes "Automated zero-cost Vox-style render.
-
-          - **Niche:** ${{ env.NICHE }}
-          - **OpenCode target:** ${{ env.OPENCODE_TARGET }}
-          - **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-          Direct download: ${{ github.server_url }}/${{ github.repository }}/releases/latest/download/video.mp4" \
-            --latest
