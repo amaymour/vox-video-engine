@@ -45,7 +45,7 @@ jobs:
 
       - name: Verify output with ffprobe
         run: |
-          ffprobe -v error -select_streams v:0 \
+          npx remotion ffprobe -v error -select_streams v:0 \
             -show_entries stream=codec_name,width,height,r_frame_rate,nb_frames,duration \
             -of default=noprint_wrappers=1 out/promo.mp4
 
