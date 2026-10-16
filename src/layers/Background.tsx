@@ -2,12 +2,12 @@ import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remo
 import { theme } from "../lib/theme"
 
 /**
- * Static locked background layer.
+ * Layer 4 — Static Locked Background Layer.
  *
- * A single continuous "map canvas" runs underneath the whole scene sequence
- * (one cinematic shot): a dark slate field, a fine dot grid, abstract
- * continents / contour arcs, accent glows and a vignette. A very slow
- * Ken-Burns drift keeps it alive without ever cutting.
+ * A single continuous "map canvas" runs underneath the entire scene sequence
+ * (one cinematic continuous shot, never cutting). Slow Ken-Burns drift keeps
+ * it alive. Prestige dark aesthetic with deep internal padding zones and glow
+ * accents for the SSS-grade look.
  */
 export const Background = () => {
   const frame = useCurrentFrame()
@@ -29,12 +29,12 @@ export const Background = () => {
         <AbsoluteFill
           style={{
             backgroundImage:
-              "radial-gradient(rgba(148,163,184,0.16) 1.3px, transparent 1.5px)",
+              "radial-gradient(rgba(148,163,184,0.14) 1.3px, transparent 1.5px)",
             backgroundSize: "44px 44px",
           }}
         />
 
-        {/* Accent glows */}
+        {/* Accent glows (prestige cyan highlights) */}
         <div
           style={{
             position: "absolute",
@@ -44,7 +44,7 @@ export const Background = () => {
             height: 980,
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(99,102,241,0.20), transparent 62%)",
+              "radial-gradient(circle, rgba(56,189,248,0.18), transparent 62%)",
           }}
         />
         <div
@@ -56,7 +56,7 @@ export const Background = () => {
             height: 1080,
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(225,29,42,0.15), transparent 62%)",
+              "radial-gradient(circle, rgba(225,29,42,0.14), transparent 62%)",
           }}
         />
 
@@ -65,11 +65,11 @@ export const Background = () => {
           width="1920"
           height="1080"
           viewBox="0 0 1920 1080"
-          style={{ position: "absolute", inset: 0, opacity: 0.6 }}
+          style={{ position: "absolute", inset: 0, opacity: 0.5 }}
         >
           <g
-            fill="rgba(148,163,184,0.06)"
-            stroke="rgba(148,163,184,0.22)"
+            fill="rgba(148,163,184,0.05)"
+            stroke="rgba(148,163,184,0.2)"
             strokeWidth="2"
           >
             <path d="M180 300 q120 -110 300 -60 t250 70 q110 90 -40 170 t-330 30 q-190 -70 -180 -210 z" />
@@ -88,7 +88,7 @@ export const Background = () => {
             <circle cx="1180" cy="420" r="90" />
             <circle cx="1180" cy="420" r="150" />
           </g>
-          <g fill="rgba(99,102,241,0.55)">
+          <g fill="rgba(56,189,248,0.55)">
             <circle cx="700" cy="360" r="6" />
             <circle cx="1180" cy="420" r="7" />
             <circle cx="1490" cy="300" r="5" />

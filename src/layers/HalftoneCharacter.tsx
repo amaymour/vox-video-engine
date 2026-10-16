@@ -1,11 +1,6 @@
 import type { CSSProperties } from "react"
-import {
-  interpolate,
-  staticFile,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion"
-import { springIn } from "../lib/anim"
+import { interpolate, staticFile } from "remotion"
+import { springHeavy } from "../lib/anim"
 import { theme } from "../lib/theme"
 import type { CharacterSpec } from "../types"
 
@@ -13,26 +8,40 @@ const BOX_W = 460
 const BOX_H = 790
 
 /**
- * Half-tone midground character layer.
+ * Layer 3 + 4 — Half-tone Midground Character Layer.
  *
  * Each subject cutout is rendered as a stylised black-and-white halftone
  * (white paper + black dot screen) through an alpha mask, with a bold red
- * offset outline vector mask layered *behind* it. `x` / `y` / `scale` come
- * straight from the scene spec so the agent can reposition cutouts.
+ * offset-outline vector mask layered *behind* it.
+ *
+ * Uses springHeavy cinematic dragging physics (mass 0.8, damping 15,
+ * stiffness 80) and explicit 3D matrix transforms — never plain X/Y:
+ *
+ *   transform: perspective(1000px) rotateX(${rotateX}deg)
+ *              translateZ(${translateZ}px)
+ *
+ * Per-character scale / x / y come straight from the scene spec so the
+ * coding agent can dynamically tweak positioning to avoid overlaps.
  */
 export const CharacterStage = ({
   characters,
-  baseDelay,
+  frame,
+  fps,
+  baseDelay = 12,
 }: {
   characters: CharacterSpec[]
-  baseDelay: number
+  frame: number
+  fps: number
+  baseDelay?: number
 }) => (
   <>
     {characters.map((character, i) => (
       <HalftoneCharacter
         key={`${character.src}-${i}`}
         character={character}
-        delay={baseDelay + i * 7}
+        frame={frame}
+        fps={fps}
+        delay={baseDelay + i * 6}
       />
     ))}
   </>
@@ -40,17 +49,34 @@ export const CharacterStage = ({
 
 const HalftoneCharacter = ({
   character,
+  frame,
+  fps,
   delay,
 }: {
   character: CharacterSpec
+  frame: number
+  fps: number
   delay: number
 }) => {
-  const frame = useCurrentFrame()
-  const { fps } = useVideoConfig()
+  // Layer 3 — cinematic dragging spring physics
+  const s = springHeavy(frame, fps, delay)
 
-  const s = springIn(frame, fps, delay)
-  const rise = interpolate(s, [0, 1], [70, 0])
-  const scale = character.scale * interpolate(s, [0, 1], [0.9, 1])
+  // Layer 2 — precise 3D interpolation proofs (clamped both ends)
+  const rotateX = interpolate(frame, [0, 30], [20, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  })
+  const translateZ = interpolate(frame, [0, 45], [-200, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  })
+
+  const matrix: CSSProperties = {
+    transform: `translate(-50%, calc(-50% + ${20 * (1 - s)}px)) perspective(1000px) rotateX(${rotateX}deg) translateZ(${translateZ}px) scale(${character.scale * (0.85 + 0.15 * s)}) ${
+      character.flip ? "scaleX(-1)" : ""
+    }`,
+  }
+
   const opacity = interpolate(frame, [delay, delay + 7], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -71,15 +97,14 @@ const HalftoneCharacter = ({
   return (
     <div
       style={{
+        ...matrix,
         position: "absolute",
         left: `${character.x * 100}%`,
         top: `${character.y * 100}%`,
         width: BOX_W,
         height: BOX_H,
-        transform: `translate(-50%, calc(-50% + ${rise}px)) scale(${scale}) ${
-          character.flip ? "scaleX(-1)" : ""
-        }`,
         opacity,
+        pointerEvents: "none",
       }}
     >
       {/* Bold red graphic offset outline vector mask, behind the subject */}
@@ -100,7 +125,7 @@ const HalftoneCharacter = ({
           position: "absolute",
           inset: 0,
           backgroundImage:
-            "radial-gradient(#0b1020 2.2px, transparent 2.5px), linear-gradient(180deg, #ffffff 0%, #dbe3ef 100%)",
+            "radial-gradient(#0B0F19 2.2px, transparent 2.5px), linear-gradient(180deg, #ffffff 0%, #dbe3ef 100%)",
           backgroundSize: "9px 9px, 100% 100%",
         }}
       />

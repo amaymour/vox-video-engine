@@ -1,8 +1,8 @@
 import {
   AbsoluteFill,
   Audio,
-  Sequence,
   interpolate,
+  Sequence,
   staticFile,
   useCurrentFrame,
   useVideoConfig,
@@ -10,9 +10,40 @@ import {
 import { Background } from "./layers/Background"
 import { CharacterStage } from "./layers/HalftoneCharacter"
 import { ForegroundAssets } from "./layers/ForegroundAsset"
-import { springIn } from "./lib/anim"
-import { FONT_FAMILY, theme } from "./lib/theme"
+import { springFast } from "./lib/anim"
+import {
+  cardDeepShadow,
+  cardStyle,
+  FONT_FAMILY,
+  glowStyle,
+  theme,
+} from "./lib/theme"
 import type { SceneSpec, VoxProps } from "./types"
+
+const FPS = 30
+
+// ============================================================================
+// Layer 2 — Matrix & Interpolation Math Proofing
+// Precise frame ranges for every interpolation boundary (clamped both ends)
+// ============================================================================
+const TRANSITION_FRAMES = 30
+
+// Precise 3D interpolation proofs — never plain X/Y animation
+export const rotateX = (frame: number) =>
+  interpolate(frame, [0, 30], [20, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  })
+
+export const translateZ = (frame: number) =>
+  interpolate(frame, [0, 45], [-200, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  })
+
+// Hero card 3D matrix transform: perspective + rotateX + translateZ
+const heroMatrix = (frame: number) =>
+  `perspective(1000px) rotateX(${rotateX(frame)}deg) translateZ(${translateZ(frame)}px)`
 
 interface Slot {
   scene: SceneSpec
@@ -110,6 +141,7 @@ const buildDefaultScenes = (niche: string): SceneSpec[] => [
 ]
 
 export const VoxVideo = (props: VoxProps) => {
+  const frame = useCurrentFrame()
   const { durationInFrames } = useVideoConfig()
   const scenes =
     props.scenes && props.scenes.length > 0
@@ -117,9 +149,76 @@ export const VoxVideo = (props: VoxProps) => {
       : buildDefaultScenes(props.niche ?? "Tech Tools")
   const slots = buildTimeline(scenes, durationInFrames)
 
+  // Layer 3 — hero snappy fade (springFast)
+  const heroOpacity = springFast(frame, FPS, 0)
+
   return (
     <AbsoluteFill style={{ backgroundColor: theme.bg, fontFamily: FONT_FAMILY }}>
+      {/* Layer 4 — locked background canvas */}
       <Background />
+
+      {/* Layer 4 — SSS-Grade Hero Card: 3D matrix + glow + card architecture */}
+      <AbsoluteFill
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "26%",
+          transform: `translateX(-50%) ${heroMatrix(frame)}`,
+          width: 720,
+          height: 420,
+          opacity: heroOpacity,
+          pointerEvents: "none",
+        }}
+      >
+        <div
+          style={{
+            ...cardStyle,
+            ...glowStyle,
+            ...cardDeepShadow,
+            width: 720,
+            height: 420,
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ color: theme.paper, fontFamily: FONT_FAMILY }}>
+            <div
+              style={{
+                fontSize: 14,
+                letterSpacing: 4,
+                textTransform: "uppercase",
+                color: theme.cyan,
+                fontWeight: 800,
+                marginBottom: 16,
+              }}
+            >
+              VOX ENGINE
+            </div>
+            <h2
+              style={{
+                fontSize: 64,
+                fontWeight: 900,
+                letterSpacing: "-0.02em",
+                lineHeight: 1.1,
+                margin: 0,
+              }}
+            >
+              Motion Graphics
+            </h2>
+            <p
+              style={{
+                fontSize: 20,
+                color: theme.muted,
+                marginTop: 20,
+                maxWidth: 560,
+                lineHeight: 1.5,
+              }}
+            >
+              Rendered entirely on zero-cost GitHub Actions runners with
+              Remotion, edge-tts and OpenCode.
+            </p>
+          </div>
+        </div>
+      </AbsoluteFill>
 
       {slots.map((slot, i) => (
         <Sequence
@@ -166,38 +265,50 @@ const SceneView = ({
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
 
-  const inOpacity = interpolate(frame, [0, 8], [0, 1], {
+  const inOpacity = interpolate(frame, [0, TRANSITION_FRAMES], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   })
   const outOpacity = interpolate(
     frame,
-    [Math.max(0, duration - 8), duration],
+    [Math.max(0, duration - TRANSITION_FRAMES), duration],
     [1, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   )
   const opacity = Math.min(inOpacity, outOpacity)
 
-  const intro = springIn(frame, fps, 0)
-  const slide = interpolate(intro, [0, 1], [26, 0])
+  // Layer 3 — assets spring in first (springFast), characters after (springHeavy)
+  const assetSpring = springFast(frame, fps, 0)
 
   return (
     <AbsoluteFill style={{ opacity }}>
-      {/* Foreground structures spring onto the frame first */}
-      <ForegroundAssets assets={scene.assets} baseDelay={2} />
+      {/* Layer 4 — foreground structures spring onto frame first */}
+      <ForegroundAssets
+        assets={scene.assets}
+        frame={frame}
+        fps={fps}
+        baseDelay={0}
+      />
 
-      {/* Midground halftone actors stagger in afterwards */}
-      <CharacterStage characters={scene.characters} baseDelay={12} />
+      {/* Layer 3 — midground halftone actors stagger in afterwards (heavy physics) */}
+      <CharacterStage
+        characters={scene.characters}
+        frame={frame}
+        fps={fps}
+        baseDelay={12}
+      />
 
-      {/* Headline block */}
+      {/* Premium headline block — card architecture */}
       <div
         style={{
           position: "absolute",
           left: 110,
-          top: 100,
-          maxWidth: 1180,
-          transform: `translateY(${slide}px)`,
-          opacity,
+          top: 110,
+          maxWidth: 1100,
+          transform: `translateY(${
+            40 * (1 - Math.min(1, assetSpring))
+          }px)`,
+          opacity: assetSpring,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -206,7 +317,7 @@ const SceneView = ({
               background: theme.red,
               color: "#ffffff",
               fontWeight: 800,
-              fontSize: 22,
+              fontSize: 20,
               letterSpacing: 2,
               padding: "8px 16px",
               borderRadius: 6,
@@ -229,8 +340,8 @@ const SceneView = ({
 
         <h1
           style={{
-            margin: "20px 0 0",
-            fontSize: 92,
+            margin: "16px 0 0",
+            fontSize: 80,
             lineHeight: 0.98,
             fontWeight: 900,
             color: theme.paper,
@@ -244,7 +355,7 @@ const SceneView = ({
         <div
           style={{
             height: 10,
-            width: 260 * Math.max(0, intro),
+            width: 260 * Math.min(1, assetSpring),
             background: theme.red,
             marginTop: 22,
             borderRadius: 6,
@@ -255,7 +366,7 @@ const SceneView = ({
           <p
             style={{
               margin: "20px 0 0",
-              fontSize: 30,
+              fontSize: 28,
               fontWeight: 600,
               color: theme.muted,
               maxWidth: 900,
@@ -302,9 +413,8 @@ const Caption = ({ text, duration }: { text: string; duration: number }) => {
     >
       <div
         style={{
-          background: "rgba(2,6,23,0.72)",
-          border: `1px solid ${theme.line}`,
-          borderRadius: 12,
+          ...cardStyle,
+          ...glowStyle,
           padding: "14px 28px",
           maxWidth: 1400,
         }}
@@ -337,6 +447,7 @@ const ProgressBar = ({ total, scenes }: { total: number; scenes: number }) => {
             height: "100%",
             width: `${progress * 100}%`,
             background: `linear-gradient(90deg, ${theme.indigo}, ${theme.red})`,
+            ...glowStyle,
           }}
         />
       </div>
