@@ -1,76 +1,119 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 
-// 🥇 SSS-Grade Premium Mechanical Easing (Apple/Linear Style)
-const SNAP_SPRING = { mass: 0.35, damping: 10.5, stiffness: 140 };
-const CINEMATIC_DRAG = { mass: 0.75, damping: 15.5, stiffness: 85 };
-
 export const VoxVideo = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Multi-phase timeline orchestration
-  const dashboardReveal = spring({ frame, fps, config: CINEMATIC_DRAG, delay: 15 });
-  const internalStagger = spring({ frame, fps, config: SNAP_SPRING, delay: 30 });
+  // 1. Global Scene Orchestration
+  const boardReveal = spring({ frame, fps, config: { mass: 0.8, damping: 16, stiffness: 90 }, delay: 5 });
+  
+  // Staggered internal component delays
+  const tagFade = spring({ frame, fps, config: { mass: 0.3, damping: 10, stiffness: 150 }, delay: 20 });
+  const titleFade = spring({ frame, fps, config: { mass: 0.4, damping: 12, stiffness: 130 }, delay: 28 });
+  const descFade = spring({ frame, fps, config: { mass: 0.5, damping: 12, stiffness: 110 }, delay: 38 });
+  const statusReveal = spring({ frame, fps, config: { mass: 0.5, damping: 14, stiffness: 120 }, delay: 48 });
 
-  // 💎 SSS-Grade 3D Perspective Matrix Math (Ultra Smooth)
-  const rotateX = interpolate(dashboardReveal, [0, 1], [35, 12]);
-  const rotateY = interpolate(dashboardReveal, [0, 1], [-45, -8]);
-  const translateZ = interpolate(dashboardReveal, [0, 1], [-500, 0]);
-  const opacity = interpolate(dashboardReveal, [0, 0.15, 1], [0, 1, 1]);
+  // 3D Perspective Calculations
+  const rotateX = interpolate(boardReveal, [0, 1], [30, 12]);
+  const rotateY = interpolate(boardReveal, [0, 1], [-45, -12]);
+  const translateZ = interpolate(boardReveal, [0, 1], [-400, 0]);
+  const opacity = interpolate(boardReveal, [0, 0.2, 1], [0, 1, 1]);
+  const floatY = Math.sin(frame / 14) * 6;
 
-  // Premium ambient micro-float (Keeps frames moving organically)
-  const ambientFloatY = Math.sin(frame / 12) * 6;
+  // ⚡ SSS-Grade Kinetic Motion Calculations
+  // Title slide + tracking expansion
+  const titleY = interpolate(titleFade, [0, 1], [20, 0]);
+  const titleTracking = interpolate(titleFade, [0, 1], [2, -0.5]);
+  
+  // Real-time server progress bar computation (Frames 50 to 120)
+  const processPercent = interpolate(frame, [50, 120], [0, 100], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const serverSpeed = Math.floor(interpolate(frame, [50, 120], [0, 842], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#020617", display: "flex", justifyContent: "center", alignItems: "center", overflow: "hidden", fontFamily: "system-ui" }}>
+    <AbsoluteFill style={{ backgroundColor: "#02040a", display: "flex", justifyContent: "center", alignItems: "center", overflow: "hidden", fontFamily: "system-ui, -apple-system" }}>
       
-      {/* 1. Dynamic Moving Ambient Mesh Gradient */}
-      <div 
-        style={{
-          position: "absolute",
-          width: "160%",
-          height: "160%",
-          background: "radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.12) 0%, rgba(139, 92, 246, 0.04) 40%, rgba(0,0,0,0) 70%)",
-          transform: `scale(${1 + Math.sin(frame / 25) * 0.04}) rotate(${frame * 0.05}deg)`,
-        }} 
-      />
+      {/* Moving Ambient Plasma Glow */}
+      <div style={{ position: "absolute", width: "150%", height: "150%", background: "radial-gradient(circle at 60% 40%, rgba(14, 165, 233, 0.15) 0%, rgba(99, 102, 241, 0.04) 40%, transparent 70%)", transform: `scale(${1 + Math.sin(frame / 20) * 0.03}) rotate(${frame * 0.03}deg)` }} />
 
-      {/* 2. Main 3D Cinematic Showcase Interface Wrapper */}
+      {/* Main Glassmorphic 3D Terminal Canvas */}
       <div
         style={{
-          width: "85%",
-          height: "65%",
+          width: "80%",
+          height: "60%",
           opacity: opacity,
-          transform: `perspective(1400px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(${translateZ}px) translateY(${ambientFloatY}px)`,
+          transform: `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(${translateZ}px) translateY(${floatY}px)`,
           display: "flex",
           flexDirection: "column",
-          borderRadius: "20px",
-          background: "linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(30, 41, 59, 0.5) 100%)",
-          backdropFilter: "blur(24px)",
-          border: "1px solid rgba(255, 255, 255, 0.09)",
-          boxShadow: "0 30px 60px -15px rgba(0, 0, 0, 0.7), 0 0 100px -20px rgba(56, 189, 248, 0.2)",
-          padding: "32px",
+          justifyContent: "space-between",
+          borderRadius: "24px",
+          background: "linear-gradient(145deg, rgba(10, 15, 30, 0.8) 0%, rgba(15, 23, 42, 0.5) 100%)",
+          backdropFilter: "blur(30px)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          boxShadow: "0 40px 80px -20px rgba(0, 0, 0, 0.8), 0 0 120px -30px rgba(14, 165, 233, 0.25)",
+          padding: "48px",
           color: "#f8fafc",
-          position: "relative"
+          boxSizing: "border-box"
         }}
       >
-        {/* Dynamic Edge Highlight Overlay */}
-        <div style={{ position: "absolute", inset: 0, borderRadius: "20px", background: "linear-gradient(to bottom, rgba(255,255,255,0.05), transparent)", pointerEvents: "none" }} />
+        {/* Top Accent Decoration Line */}
+        <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: "1px", background: "linear-gradient(to right, transparent, rgba(14, 165, 233, 0.3), transparent)" }} />
 
-        {/* ─── INJECT CONTENT CONTAINER START ─── */}
-        {/* Vox Engine: custom SaaS app headers, metric counters, and UI icons staggered using internalStagger math */}
-        <div style={{ transform: `scale(${internalStagger})`, display: "flex", flexDirection: "column", gap: "12px" }}>
-          <div style={{ display: "inline-block", alignSelf: "flex-start", padding: "6px 12px", background: "rgba(56, 189, 248, 0.1)", border: "1px solid rgba(56, 189, 248, 0.2)", borderRadius: "9999px", fontSize: "12px", color: "#38bdf8", fontWeight: "600", letterSpacing: "0.05em" }}>
-            VOX MOTION GRAPHICS
+        {/* ── HEADER & TYPOGRAPHY BLOCK ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          
+          {/* Animated Mini Tag */}
+          <div style={{ opacity: tagFade, transform: `translateY(${interpolate(tagFade, [0, 1], [10, 0])}px)`, display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#0ea5e9", boxShadow: "0 0 8px #0ea5e9" }} />
+            <span style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "0.15em", color: "#0ea5e9", textTransform: "uppercase" }}>
+              VOX MOTION GRAPHICS
+            </span>
           </div>
-          <h1 style={{ fontSize: "42px", fontWeight: "800", letterSpacing: "-0.02em", background: "linear-gradient(to right, #ffffff, #94a3b8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-            Render Cinematic Video in the Cloud
-          </h1>
-          <p style={{ fontSize: "16px", color: "#94a3b8", maxWidth: "420px", lineHeight: "1.5" }}>
-            Layered compositing, edge-tts narration, and spring-physics motion — rendered entirely on zero-cost GitHub Actions runners.
+
+          {/* Cinematic Title Entry */}
+          <div style={{ overflow: "hidden", paddingBottom: "4px" }}>
+            <h1 style={{ transform: `translateY(${titleY}px)`, opacity: titleFade, letterSpacing: `${titleTracking}px`, fontSize: "44px", fontWeight: "800", margin: 0, background: "linear-gradient(to bottom right, #ffffff 30%, #94a3b8 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              Render Cinematic Video <br /> Directly in the Cloud
+            </h1>
+          </div>
+
+          {/* Balanced Subtext Container */}
+          <p style={{ opacity: descFade, transform: `translateY(${interpolate(descFade, [0, 1], [15, 0])}px)`, fontSize: "15px", color: "#64748b", maxWidth: "520px", margin: 0, lineHeight: "1.6", fontWeight: "400" }}>
+            Layered compositing, edge-to-edge math orchestration, and fluid spring physics motion — rendered seamlessly on headless server architectures.
           </p>
         </div>
-        {/* ─── INJECT CONTENT CONTAINER END ─── */}
+
+        {/* ── 📊 MOTION GRAPHIC: DYNAMIC SERVER METRIC STATUS BAR ── */}
+        <div style={{ opacity: statusReveal, transform: `translateY(${interpolate(statusReveal, [0, 1], [20, 0])}px)`, display: "flex", flexDirection: "column", gap: "12px", background: "rgba(0, 0, 0, 0.25)", border: "1px solid rgba(255,255,255,0.03)", padding: "20px", borderRadius: "14px" }}>
+          
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" }}>
+            <span style={{ color: "#94a3b8", fontWeight: "500", display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ display: "inline-block", width: "8px", height: "8px", backgroundColor: frame > 50 && frame < 120 ? "#eab308" : frame >= 120 ? "#22c55e" : "#64748b", borderRadius: "50%" }} />
+              {frame < 50 ? "Queued Node..." : frame < 120 ? "Compiling Assets..." : "Success: Render Complete"}
+            </span>
+            <span style={{ fontFamily: "monospace", color: "#0ea5e9", fontWeight: "600" }}>
+              {serverSpeed} FPS / Enqueued
+            </span>
+          </div>
+
+          {/* Moving Progress Bar Track */}
+          <div style={{ width: "100%", height: "6px", backgroundColor: "rgba(255,255,255,0.05)", borderRadius: "999px", overflow: "hidden", position: "relative" }}>
+            <div 
+              style={{ 
+                width: `${processPercent}%`, 
+                height: "100%", 
+                background: "linear-gradient(to right, #6366f1, #0ea5e9)", 
+                boxShadow: "0 0 12px #0ea5e9",
+                borderRadius: "999px",
+                transition: "width 0.1s linear"
+              }} 
+            />
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#475569", fontFamily: "monospace" }}>
+            <span>CLUSTER_NODE_04 // HEADLESS</span>
+            <span>PROGRESS: {Math.floor(processPercent)}%</span>
+          </div>
+        </div>
 
       </div>
     </AbsoluteFill>
