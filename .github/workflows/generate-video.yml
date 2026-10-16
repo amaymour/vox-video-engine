@@ -1,4 +1,4 @@
-name: Generate Video
+name: Generate Vertical Promo
 
 on:
   repository_dispatch:
@@ -15,7 +15,6 @@ permissions:
 
 env:
   NODE_VERSION: "20"
-  NICHE: ${{ github.event.client_payload.niche || inputs.niche || 'Tech Tools' }}
 
 jobs:
   build:
@@ -38,9 +37,9 @@ jobs:
       - name: Ensure Remotion browser (bundled Chrome Headless Shell)
         run: npx remotion browser ensure
 
-      - name: Render KineticPromo composition
+      - name: Render ViralDocumentary composition
         run: |
-          npx remotion render KineticPromo out/promo.mp4 \
+          npx remotion render ViralDocumentary out/promo.mp4 \
             --codec=h264 --concurrency=2 --crf=18
 
       - name: Verify output with ffprobe

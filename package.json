@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "remotion preview",
-    "build": "remotion render src/index.ts VoxVideo out/video.mp4",
+    "build": "remotion render src/index.ts ViralDocumentary out/video.mp4",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
