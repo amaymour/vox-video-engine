@@ -73,10 +73,9 @@ jobs:
       - name: Ensure Remotion browser (bundled Chrome Headless Shell)
         run: npx remotion browser ensure
 
-      - name: Render multi-layer composition
+      - name: Render KineticPromo composition
         run: |
-          npx remotion render src/index.ts VoxVideo out/video.mp4 \
-            --props=data/scene.json
+          npx remotion render src/index.ts KineticPromo out/video.mp4
 
       - name: Report output video (Remotion's bundled ffprobe)
         if: always()
