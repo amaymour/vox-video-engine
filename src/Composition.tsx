@@ -2,15 +2,15 @@ import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } fr
 
 export const VoxVideo = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
 
   // 1. Global Scene Orchestration
   const boardReveal = spring({ frame, fps, config: { mass: 0.8, damping: 16, stiffness: 90 }, delay: 5 });
   
-  // Staggered internal component delays
-  const tagFade = spring({ frame, fps, config: { mass: 0.3, damping: 10, stiffness: 150 }, delay: 20 });
-  const titleFade = spring({ frame, fps, config: { mass: 0.4, damping: 12, stiffness: 130 }, delay: 28 });
-  const descFade = spring({ frame, fps, config: { mass: 0.5, damping: 12, stiffness: 110 }, delay: 38 });
+  // Staggered internal component delays (15 / 25 / 35)
+  const tagFade = spring({ frame, fps, config: { mass: 0.3, damping: 10, stiffness: 150 }, delay: 15 });
+  const titleFade = spring({ frame, fps, config: { mass: 0.4, damping: 12, stiffness: 130 }, delay: 25 });
+  const descFade = spring({ frame, fps, config: { mass: 0.5, damping: 12, stiffness: 110 }, delay: 35 });
   const statusReveal = spring({ frame, fps, config: { mass: 0.5, damping: 14, stiffness: 120 }, delay: 48 });
 
   // 3D Perspective Calculations
@@ -20,14 +20,18 @@ export const VoxVideo = () => {
   const opacity = interpolate(boardReveal, [0, 0.2, 1], [0, 1, 1]);
   const floatY = Math.sin(frame / 14) * 6;
 
-  // ⚡ SSS-Grade Kinetic Motion Calculations
+  // ⚡ Kinetic Motion Calculations
   // Title slide + tracking expansion
   const titleY = interpolate(titleFade, [0, 1], [20, 0]);
-  const titleTracking = interpolate(titleFade, [0, 1], [2, -0.5]);
-  
-  // Real-time server progress bar computation (Frames 50 to 120)
-  const processPercent = interpolate(frame, [50, 120], [0, 100], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const serverSpeed = Math.floor(interpolate(frame, [50, 120], [0, 842], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
+  const tagY = interpolate(tagFade, [0, 1], [10, 0]);
+  const descY = interpolate(descFade, [0, 1], [15, 0]);
+
+  // Continuous typographic tracking across the entire clip (no freeze after frame 30)
+  const continuousTracking = interpolate(frame, [0, durationInFrames], [2, -1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+
+  // Real-time server progress bar computation (Frames 45 to 130, fluid 0%→100%)
+  const processPercent = interpolate(frame, [45, 130], [0, 100], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const serverSpeed = Math.floor(interpolate(frame, [45, 130], [0, 842], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#02040a", display: "flex", justifyContent: "center", alignItems: "center", overflow: "hidden", fontFamily: "system-ui, -apple-system" }}>
@@ -62,7 +66,7 @@ export const VoxVideo = () => {
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           
           {/* Animated Mini Tag */}
-          <div style={{ opacity: tagFade, transform: `translateY(${interpolate(tagFade, [0, 1], [10, 0])}px)`, display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ opacity: tagFade, transform: `translateY(${tagY}px)`, display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#0ea5e9", boxShadow: "0 0 8px #0ea5e9" }} />
             <span style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "0.15em", color: "#0ea5e9", textTransform: "uppercase" }}>
               VOX MOTION GRAPHICS
@@ -71,13 +75,13 @@ export const VoxVideo = () => {
 
           {/* Cinematic Title Entry */}
           <div style={{ overflow: "hidden", paddingBottom: "4px" }}>
-            <h1 style={{ transform: `translateY(${titleY}px)`, opacity: titleFade, letterSpacing: `${titleTracking}px`, fontSize: "44px", fontWeight: "800", margin: 0, background: "linear-gradient(to bottom right, #ffffff 30%, #94a3b8 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            <h1 style={{ transform: `translateY(${titleY}px)`, opacity: titleFade, letterSpacing: `${continuousTracking}px`, fontSize: "44px", fontWeight: "800", margin: 0, background: "linear-gradient(to bottom right, #ffffff 30%, #94a3b8 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               Render Cinematic Video <br /> Directly in the Cloud
             </h1>
           </div>
 
           {/* Balanced Subtext Container */}
-          <p style={{ opacity: descFade, transform: `translateY(${interpolate(descFade, [0, 1], [15, 0])}px)`, fontSize: "15px", color: "#64748b", maxWidth: "520px", margin: 0, lineHeight: "1.6", fontWeight: "400" }}>
+          <p style={{ opacity: descFade, transform: `translateY(${descY}px)`, fontSize: "15px", color: "#64748b", maxWidth: "520px", margin: 0, lineHeight: "1.6", fontWeight: "400" }}>
             Layered compositing, edge-to-edge math orchestration, and fluid spring physics motion — rendered seamlessly on headless server architectures.
           </p>
         </div>
@@ -87,8 +91,8 @@ export const VoxVideo = () => {
           
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" }}>
             <span style={{ color: "#94a3b8", fontWeight: "500", display: "flex", alignItems: "center", gap: "6px" }}>
-              <span style={{ display: "inline-block", width: "8px", height: "8px", backgroundColor: frame > 50 && frame < 120 ? "#eab308" : frame >= 120 ? "#22c55e" : "#64748b", borderRadius: "50%" }} />
-              {frame < 50 ? "Queued Node..." : frame < 120 ? "Compiling Assets..." : "Success: Render Complete"}
+              <span style={{ display: "inline-block", width: "8px", height: "8px", backgroundColor: frame > 45 && frame < 130 ? "#eab308" : frame >= 130 ? "#22c55e" : "#64748b", borderRadius: "50%" }} />
+              {frame < 45 ? "Queued Node..." : frame < 130 ? "Compiling Assets..." : "Success: Render Complete"}
             </span>
             <span style={{ fontFamily: "monospace", color: "#0ea5e9", fontWeight: "600" }}>
               {serverSpeed} FPS / Enqueued
