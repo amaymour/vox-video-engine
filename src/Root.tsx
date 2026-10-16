@@ -2,6 +2,7 @@ import { Composition as RemotionComposition, staticFile } from "remotion"
 import { getAudioDurationInSeconds } from "@remotion/media-utils"
 import { VoxVideo } from "./Composition"
 import type { VoxProps } from "./types"
+import KineticPromoCard from "./KineticPromoCard"
 
 const FPS = 30
 const MIN_SECONDS = 14
@@ -33,15 +34,25 @@ const calculateMetadata = async ({ props }: { props: VoxProps }) => {
 }
 
 export const Root = () => (
-  <RemotionComposition
-    id="VoxVideo"
-    component={VoxVideo}
-    durationInFrames={Math.ceil(MIN_SECONDS * FPS)}
-    fps={FPS}
-    width={1920}
-    height={1080}
-    calculateMetadata={calculateMetadata}
-    // Render-time props are injected with --props=data/scene.json in CI.
-    // (The flag is --props, not --props-file.)
-  />
+  <>
+    <RemotionComposition
+      id="VoxVideo"
+      component={VoxVideo}
+      durationInFrames={Math.ceil(MIN_SECONDS * FPS)}
+      fps={FPS}
+      width={1920}
+      height={1080}
+      calculateMetadata={calculateMetadata}
+      // Render-time props are injected with --props=data/scene.json in CI.
+      // (The flag is --props, not --props-file.)
+    />
+    <RemotionComposition
+      id="KineticPromo"
+      component={KineticPromoCard}
+      durationInFrames={300}
+      fps={60}
+      width={1920}
+      height={1080}
+    />
+  </>
 )
