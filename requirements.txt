@@ -1,4 +1,2 @@
-# Python dependencies for the Vox Engine cloud pipeline.
-# Also required so actions/setup-python's `cache: pip` can compute a cache key.
 edge-tts
 requests

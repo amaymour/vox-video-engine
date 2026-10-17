@@ -34,12 +34,27 @@ jobs:
       - name: Install Node dependencies
         run: npm ci
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate voiceover + scene props (edge-tts)
+        run: python scripts/generate_audio.py
+
       - name: Ensure Remotion browser (bundled Chrome Headless Shell)
         run: npx remotion browser ensure
 
       - name: Render ViralDocumentary composition
         run: |
           npx remotion render ViralDocumentary out/promo.mp4 \
+            --props=data/script.json \
             --codec=h264 --concurrency=2 --crf=18
 
       - name: Verify output with ffprobe
