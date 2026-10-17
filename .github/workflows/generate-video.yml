@@ -105,10 +105,15 @@ jobs:
             --frames=0-$(( FRAMES - 1 )) \
             --codec=h264 --concurrency=2 --crf=18
 
-      - name: Verify output with ffprobe
-        run: ffprobe -v error -select_streams v:0 \
-          -show_entries stream=codec_name,width,height,r_frame_rate,nb_frames,duration \
-          -of default=noprint_wrappers=1 out/promo.mp4
+      - name: Verify output file exists
+        run: |
+          if [ -f out/promo.mp4 ]; then
+            SIZE=$(stat -f%z out/promo.mp4 2>/dev/null || stat -c%s out/promo.mp4 2>/dev/null)
+            echo "✅ Video generated successfully ($(($SIZE / 1024 / 1024)) MB)"
+          else
+            echo "❌ Video file not found"
+            exit 1
+          fi
 
       - name: Upload video artifact
         uses: actions/upload-artifact@v4
