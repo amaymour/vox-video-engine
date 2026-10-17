@@ -12,6 +12,17 @@ on:
 
 permissions:
   contents: write
+  actions: write
+  attestations: write
+  checks: write
+  discussions: write
+  id-token: write
+  issues: write
+  pages: write
+  pull-requests: write
+  repository-projects: write
+  security-events: write
+  statuses: write
 
 env:
   NODE_VERSION: "20"
@@ -47,9 +58,14 @@ jobs:
 
       - name: Generate voiceover + scene props (edge-tts)
         run: python scripts/generate_audio.py
+        env:
+          NICHE: ${{ inputs.niche }}
 
       - name: Ensure Remotion browser (bundled Chrome Headless Shell)
         run: npx remotion browser ensure
+
+      - name: Create output directory
+        run: mkdir -p out
 
       - name: Render ViralDocumentary composition
         run: |
@@ -58,10 +74,9 @@ jobs:
             --codec=h264 --concurrency=2 --crf=18
 
       - name: Verify output with ffprobe
-        run: |
-          npx remotion ffprobe -v error -select_streams v:0 \
-            -show_entries stream=codec_name,width,height,r_frame_rate,nb_frames,duration \
-            -of default=noprint_wrappers=1 out/promo.mp4
+        run: ffprobe -v error -select_streams v:0 \
+          -show_entries stream=codec_name,width,height,r_frame_rate,nb_frames,duration \
+          -of default=noprint_wrappers=1 out/promo.mp4
 
       - name: Upload video artifact
         uses: actions/upload-artifact@v4
