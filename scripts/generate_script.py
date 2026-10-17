@@ -31,6 +31,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(REPO_ROOT, "data")
 PUBLIC_DIR = os.path.join(REPO_ROOT, "public")
 SCENE_JSON = os.path.join(DATA_DIR, "scene.json")
+SCRIPT_JSON = os.path.join(DATA_DIR, "script.json")
 TRENDS_CSV = os.path.join(REPO_ROOT, "live_trends.csv")
 VOICEOVER_MP3 = os.path.join(PUBLIC_DIR, "voiceover.mp3")
 
@@ -430,6 +431,9 @@ def main() -> int:
         "scenes": scenes,
     }
     with open(SCENE_JSON, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, indent=2, ensure_ascii=False)
+
+    with open(SCRIPT_JSON, "w", encoding="utf-8") as fh:
         json.dump(payload, fh, indent=2, ensure_ascii=False)
 
     print(

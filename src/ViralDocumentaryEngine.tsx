@@ -15,12 +15,28 @@ const CLAMP = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const
 export const ViralDocumentaryEngine: React.FC = () => {
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
-  const inputProps = getInputProps<{ audio?: string | null }>()
+  const inputProps = getInputProps<{
+    audio?: string | null
+    niche?: string
+    title?: string
+    narration?: string
+  }>()
   const audio = inputProps?.audio ?? null
+  const niche = inputProps?.niche ?? "VIRAL DOCUMENTARY"
+  const titleText = inputProps?.title ?? "Render Cinematic Video"
+  const subtitleText = titleText.includes("\n")
+    ? titleText.split("\n")[1]
+    : "Directly in the Cloud"
+  const headlineText = titleText.includes("\n")
+    ? titleText.split("\n")[0]
+    : titleText
+  const descText =
+    inputProps?.narration ??
+    "Layered compositing, edge-to-edge math orchestration, and fluid spring physics motion — rendered seamlessly on headless server architectures."
 
-  // Normalize to 30fps timings regardless of render fps
+  const { durationInFrames } = useVideoConfig()
   const t = (frame * 30) / fps
-  const totalT = 150
+  const totalT = (durationInFrames * 30) / fps
 
   // -----------------------------------------------------------------------
   // Layer 1: Cinematic parallax background (BIG motion)
@@ -270,7 +286,7 @@ export const ViralDocumentaryEngine: React.FC = () => {
                     animation: "pulse 1.5s infinite",
                   }}
                 />
-                VIRAL DOCUMENTARY
+                {niche.toUpperCase()}
               </div>
 
               <h1
@@ -291,7 +307,7 @@ export const ViralDocumentaryEngine: React.FC = () => {
                   backgroundClip: "text",
                 }}
               >
-                Render Cinematic Video
+                {headlineText}
               </h1>
               <h1
                 style={{
@@ -311,7 +327,7 @@ export const ViralDocumentaryEngine: React.FC = () => {
                   backgroundClip: "text",
                 }}
               >
-                Directly in the Cloud
+                {subtitleText}
               </h1>
             </div>
           </div>
@@ -327,8 +343,7 @@ export const ViralDocumentaryEngine: React.FC = () => {
               margin: 0,
             }}
           >
-            Layered compositing, edge-to-edge math orchestration, and fluid spring
-            physics motion — rendered seamlessly on headless server architectures.
+            {descText.slice(0, 140)}
           </p>
         </div>
       </div>

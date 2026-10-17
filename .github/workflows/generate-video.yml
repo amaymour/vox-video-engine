@@ -1,4 +1,4 @@
-name: Generate Vertical Promo
+name: Generate SSS-Grade Video
 
 on:
   repository_dispatch:
@@ -6,9 +6,22 @@ on:
   workflow_dispatch:
     inputs:
       niche:
-        description: "Niche keyword (e.g. Tech Tools)"
-        required: false
-        default: "Tech Tools"
+        description: "Niche keyword (e.g. AI Agents, SaaS Tools, Crypto, Wellness)"
+        required: true
+        default: "AI Agents"
+      composition:
+        description: "Remotion Composition to render"
+        required: true
+        default: "NicheExplainer"
+        type: choice
+        options:
+          - NicheExplainer
+          - ViralDocumentary
+          - KineticPromo
+      duration_seconds:
+        description: "Video duration in seconds (30-60)"
+        required: true
+        default: "60"
 
 permissions:
   contents: write
@@ -26,6 +39,7 @@ permissions:
 
 env:
   NODE_VERSION: "20"
+  PYTHON_VERSION: "3.11"
 
 jobs:
   build:
@@ -48,7 +62,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: "pip"
 
       - name: Install Python dependencies
@@ -56,10 +70,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Generate voiceover + scene props (edge-tts)
-        run: python scripts/generate_audio.py
+      - name: Fetch live trends for niche
+        run: python fetch_trends.py "${{ inputs.niche }}"
         env:
           NICHE: ${{ inputs.niche }}
+
+      - name: Generate AI script & scene plan (OpenCode / OmniRoute)
+        run: python scripts/generate_script.py
+        env:
+          NICHE: ${{ inputs.niche }}
+          OPENCODE_TARGET: "http://localhost:20128/v1"
+          OPENCODE_KEY: ${{ secrets.OMNIROUTE_API_KEY || 'sk_omniroute' }}
+          OPENCODE_MODELS: "auto/coding,oc/deepseek-v4-flash-free"
 
       - name: Ensure Remotion browser (bundled Chrome Headless Shell)
         run: npx remotion browser ensure
@@ -67,10 +89,17 @@ jobs:
       - name: Create output directory
         run: mkdir -p out
 
-      - name: Render ViralDocumentary composition
+      - name: Render Remotion composition
         run: |
-          npx remotion render ViralDocumentary out/promo.mp4 \
-            --props=data/script.json \
+          # Calculate duration in frames (30 fps)
+          DUR_SEC="${{ inputs.duration_seconds }}"
+          FPS="30"
+          FRAMES=$(( DUR_SEC * FPS ))
+          echo "Rendering composition ${{ inputs.composition }} for ${DUR_SEC}s (${FRAMES} frames)..."
+
+          npx remotion render "${{ inputs.composition }}" out/promo.mp4 \
+            --props=data/scene.json \
+            --frames=0-$(( FRAMES - 1 )) \
             --codec=h264 --concurrency=2 --crf=18
 
       - name: Verify output with ffprobe
@@ -81,6 +110,6 @@ jobs:
       - name: Upload video artifact
         uses: actions/upload-artifact@v4
         with:
-          name: promo
+          name: promo-${{ inputs.composition }}
           path: out/promo.mp4
           if-no-files-found: error
