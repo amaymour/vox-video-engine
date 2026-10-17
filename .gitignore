@@ -14,6 +14,7 @@ dist/
 # generated at runtime by the pipeline (do not commit)
 live_trends.csv
 data/scene.json
+data/script.json
 public/voiceover.mp3
 public/sfx/*.wav
 
