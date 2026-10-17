@@ -70,6 +70,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
       - name: Fetch live trends for niche
         run: python fetch_trends.py "${{ inputs.niche }}"
         env:
