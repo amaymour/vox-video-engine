@@ -24,22 +24,26 @@ NARRATION = (
 
 
 async def _run() -> None:
-    try:
-        import edge_tts  # type: ignore
-    except ImportError:
-        print("generate_audio: edge-tts not installed; skipping voiceover")
-        return
-
     os.makedirs(PUBLIC_DIR, exist_ok=True)
     os.makedirs(DATA_DIR, exist_ok=True)
-    communicate = edge_tts.Communicate(NARRATION, voice="en-US-AriaNeural")
-    await communicate.save(VOICEOVER_MP3)
-    print(f"generate_audio: voiceover -> {VOICEOVER_MP3}")
+
+    audio_path: str | None = None
+    try:
+        import edge_tts  # type: ignore
+
+        communicate = edge_tts.Communicate(NARRATION, voice="en-US-AriaNeural")
+        await communicate.save(VOICEOVER_MP3)
+        audio_path = "voiceover.mp3"
+        print(f"generate_audio: voiceover -> {VOICEOVER_MP3}")
+    except ImportError:
+        print("generate_audio: edge-tts not installed; rendering without audio")
+    except Exception as exc:  # noqa: BLE001 — network TTS may fail
+        print(f"generate_audio: edge-tts failed ({exc}); rendering without audio")
 
     payload = {
         "niche": "Viral Documentary",
         "title": "Render Cinematic Video in the Cloud",
-        "audio": "voiceover.mp3",
+        "audio": audio_path,
         "narration": NARRATION,
     }
     with open(SCRIPT_JSON, "w", encoding="utf-8") as fh:
